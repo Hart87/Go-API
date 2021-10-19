@@ -11,7 +11,10 @@ func main() {
 	log.Println("Go-API Running")
 
 	//Routes
-	http.HandleFunc("/users/hello", routes.HandleRoute)
+	//GET
+	http.HandleFunc("/users/all", routes.HandleRoute)
+	//GET, PUT, POST, DELETE a User by Id
+	http.HandleFunc("/users/", routes.UsersRoute)
 
 	err := http.ListenAndServe(":8081", nil)
 	if err != nil {

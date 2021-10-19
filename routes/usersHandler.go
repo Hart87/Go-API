@@ -9,6 +9,7 @@ import (
 	"github.com/hart87/go-api/models"
 )
 
+//handler to base stuff off of for now....
 func HandleRoute(w http.ResponseWriter, r *http.Request) {
 	user := models.User{
 		Name:       "John McGillicuddy",
@@ -28,4 +29,53 @@ func HandleRoute(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(message))
+}
+
+func UsersRoute(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		getUserById(w, r)
+		return
+	case "POST":
+		postUser(w, r)
+		return
+	case "PUT":
+		editAUserById(w, r)
+		return
+	case "DELETE":
+		deleteAUserById(w, r)
+		return
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("method not allowed"))
+		return
+	}
+}
+
+func getUserById(w http.ResponseWriter, r *http.Request) {
+	log.Print("Get a User by Id")
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("GET"))
+}
+
+func postUser(w http.ResponseWriter, r *http.Request) {
+	log.Print("Post a User")
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("POST"))
+}
+
+func editAUserById(w http.ResponseWriter, r *http.Request) {
+	log.Print("Edit a User")
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("PUT"))
+}
+
+func deleteAUserById(w http.ResponseWriter, r *http.Request) {
+	log.Print("Delete a User")
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("DELETE"))
 }
