@@ -4,14 +4,13 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/hart87/go-api/routes"
 )
 
 func main() {
-	log.Println(uuid.New())
+	log.Println("Go-API Running")
 
-	//Handlers
+	//Routes
 	http.HandleFunc("/users/hello", routes.HandleRoute)
 
 	err := http.ListenAndServe(":8081", nil)
