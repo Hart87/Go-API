@@ -3,8 +3,9 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
-	"github.com/hart87/go-api/routes"
+	"github.com/hart87/go-api/handlers"
 )
 
 func main() {
@@ -12,12 +13,15 @@ func main() {
 
 	//Routes
 	//GET
-	http.HandleFunc("/users/all", routes.HandleRoute)
+	http.HandleFunc("/users/all", handlers.HandleRoute)
 	//GET, PUT, POST, DELETE a User by Id
-	http.HandleFunc("/users/", routes.UsersRoute)
+	http.HandleFunc("/users/", handlers.UsersRoute)
 
-	err := http.ListenAndServe(":8081", nil)
-	if err != nil {
-		panic(err)
+	s := &http.Server{
+		Addr:         ":8082",
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 5 * time.Second,
 	}
+	log.Fatal(s.ListenAndServe())
+
 }

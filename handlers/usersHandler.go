@@ -1,11 +1,13 @@
-package routes
+package handlers
 
 import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/hart87/go-api/auth"
 	"github.com/hart87/go-api/models"
 )
 
@@ -53,6 +55,15 @@ func UsersRoute(w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserById(w http.ResponseWriter, r *http.Request) {
+	//Authentication here
+	if !auth.IsAuthenticated(r) {
+		log.Print("FORBIDDEN")
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte("403 - FORBIDDEN"))
+		return
+	}
+
 	log.Print("Get a User by Id")
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -60,6 +71,7 @@ func getUserById(w http.ResponseWriter, r *http.Request) {
 }
 
 func postUser(w http.ResponseWriter, r *http.Request) {
+	time.Sleep(time.Second * 7) //Timeout Test
 	log.Print("Post a User")
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -67,6 +79,7 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func editAUserById(w http.ResponseWriter, r *http.Request) {
+	//Authentication here
 	log.Print("Edit a User")
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -74,6 +87,7 @@ func editAUserById(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteAUserById(w http.ResponseWriter, r *http.Request) {
+	//Authentication here
 	log.Print("Delete a User")
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
