@@ -11,7 +11,6 @@ import (
 func main() {
 	log.Println("Go-API Running")
 
-	//Routes
 	//GET
 	http.HandleFunc("/users/all", handlers.HandleRoute)
 	//GET, PUT, POST, DELETE a User by Id

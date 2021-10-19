@@ -16,7 +16,7 @@ func HandleRoute(w http.ResponseWriter, r *http.Request) {
 	user := models.User{
 		Name:       "John McGillicuddy",
 		Email:      "JMC@gmail.com",
-		Password:   "password",
+		Password:   auth.HashPassword("password"),
 		ID:         uuid.NewString(),
 		Membership: "standard",
 		CreatedAt:  1351700038}
@@ -26,6 +26,10 @@ func HandleRoute(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	}
+
+	//hash test
+	log.Println(user.Password)
+	log.Println(auth.CheckPasswordHash(user.Password, "password"))
 
 	log.Print("test handler")
 	w.Header().Add("content-type", "application/json")
