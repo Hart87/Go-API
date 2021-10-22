@@ -61,7 +61,6 @@ func UsersRoute(w http.ResponseWriter, r *http.Request) {
 func getUserById(w http.ResponseWriter, r *http.Request) {
 	//Authentication here
 	if !auth.IsAuthenticated(r) {
-		log.Print("FORBIDDEN")
 		w.Header().Add("content-type", "application/json")
 		w.WriteHeader(http.StatusForbidden)
 		w.Write([]byte("403 - FORBIDDEN"))
