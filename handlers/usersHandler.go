@@ -3,8 +3,10 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,45 +15,15 @@ import (
 	"github.com/hart87/go-api/models"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func TestRoute(w http.ResponseWriter, r *http.Request) {
-	user := models.User{
-		Name:       "John McGillicuddy",
-		Email:      "JMC@gmail.com",
-		Password:   auth.HashPassword("password"),
-		ID:         uuid.NewString(),
-		Membership: "standard",
-		CreatedAt:  1351700038}
-
-	message, err := json.Marshal(user)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-	}
-
-	//hash test
-	log.Println(user.Password)
-	log.Println(auth.CheckPasswordHash(user.Password, "password"))
-
-	log.Print("test handler")
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(message))
-}
-
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	if !auth.IsAuthenticated(r) {
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte("403 - FORBIDDEN"))
-		return
-	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	collection, err := db.GetMongoDbCollection(db.DATABASE, db.COLLECTION_USERS)
+	collection, client, err := db.GetMongoDbCollection(db.DATABASE, db.COLLECTION_USERS)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -61,23 +33,21 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-
 	defer cursor.Close(ctx)
+
 	results := []models.User{}
-
-	defer cursor.Close(ctx)
 	if err = cursor.All(ctx, &results); err != nil {
 		panic(err)
 	}
 
 	mResults, err := json.Marshal(results)
-
 	if err != nil {
 		w.Header().Add("content-type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	}
 
+	client.Disconnect(ctx)
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(mResults))
@@ -105,51 +75,215 @@ func UsersRoute(w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserById(w http.ResponseWriter, r *http.Request) {
-	//Authentication here
-	if !auth.IsAuthenticated(r) {
+
+	parts := strings.Split(r.URL.String(), "/")
+	if len(parts) != 3 {
 		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte("403 - FORBIDDEN"))
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	part := parts[2]
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection, client, err := db.GetMongoDbCollection(db.DATABASE, db.COLLECTION_USERS)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	result := models.User{}
+
+	filter := bson.D{{"id", part}}
+	val := collection.FindOne(ctx, filter).Decode(&result)
+	if val != nil {
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader((http.StatusInternalServerError))
+		w.Write([]byte(err.Error()))
 		return
 	}
 
-	log.Print("Get a User by Id")
+	response, err := json.Marshal(result)
+	if err != nil {
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	client.Disconnect(ctx)
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("GET"))
+	w.Write([]byte(response))
 }
 
 func postUser(w http.ResponseWriter, r *http.Request) {
 
-	//Dummy user here for a test
-	user := models.User{
-		Name:       "Steve Herman",
-		Email:      "StevieH@yahooo.com",
-		Password:   auth.HashPassword("password"),
-		ID:         uuid.NewString(),
-		Membership: "admin",
-		CreatedAt:  13517005000}
+	ct := r.Header.Get("content-type")
+	if ct != "application/json" {
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		return
+	}
 
-	//db.CreateUser(user)
-	result, _ := json.Marshal(user)
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
 
+	var user models.User
+	err = json.Unmarshal(bodyBytes, &user)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	user.CreatedAt = 1351700038
+	user.ID = uuid.NewString()
+	user.Password = auth.HashPassword(user.Password)
+	log.Println(user)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection, client, err := db.GetMongoDbCollection(db.DATABASE, db.COLLECTION_USERS)
+	if err != nil {
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	res, err := collection.InsertOne(context.Background(), user)
+	if err != nil {
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	log.Println(res)
+
+	jres, _ := json.Marshal(user)
+
+	client.Disconnect(ctx)
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(result))
+	w.Write([]byte(jres))
 }
 
 func editAUserById(w http.ResponseWriter, r *http.Request) {
-	//Authentication here
-	log.Print("Edit a User")
+
+	ct := r.Header.Get("content-type")
+	if ct != "application/json" {
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		return
+	}
+
+	parts := strings.Split(r.URL.String(), "/")
+	if len(parts) != 3 {
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	part := parts[2]
+
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	var user models.User
+	err = json.Unmarshal(bodyBytes, &user)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection, client, err := db.GetMongoDbCollection(db.DATABASE, db.COLLECTION_USERS)
+	if err != nil {
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	opts := options.Update().SetUpsert(true)
+	filter := bson.D{{"id", part}}
+	update := bson.D{{"$set", user}}
+
+	result, err := collection.UpdateOne(context.TODO(), filter, update, opts)
+	if err != nil {
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	if result.MatchedCount != 0 {
+		log.Println("matched and replaced an existing document")
+		return
+	}
+	if result.UpsertedCount != 0 {
+		log.Printf("inserted a new document with ID %v\n", result.UpsertedID)
+	}
+
+	res, _ := json.Marshal(user)
+	client.Disconnect(ctx)
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("PUT"))
+	w.Write([]byte(res))
 }
 
 func deleteAUserById(w http.ResponseWriter, r *http.Request) {
-	//Authentication here
-	log.Print("Delete a User")
+
+	ct := r.Header.Get("content-type")
+	if ct != "application/json" {
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		return
+	}
+
+	parts := strings.Split(r.URL.String(), "/")
+	if len(parts) != 3 {
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	part := parts[2]
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection, client, err := db.GetMongoDbCollection(db.DATABASE, db.COLLECTION_USERS)
+	if err != nil {
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	opts := options.Delete()
+	filter := bson.D{{"id", part}}
+	res, err := collection.DeleteOne(context.TODO(), filter, opts)
+	if err != nil {
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	log.Println(res)
+
+	client.Disconnect(ctx)
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("DELETE"))
 }
