@@ -12,9 +12,9 @@ func main() {
 	log.Println("Go-API Running")
 
 	//GET
-	http.HandleFunc("/users/all", handlers.GetAllUsers)
+	http.HandleFunc("/v1/users/all", handlers.GetAllUsers)
 	//GET, PUT, POST, DELETE a User by Id
-	http.HandleFunc("/users/", handlers.UsersRoute)
+	http.HandleFunc("/v1/users/", handlers.UsersRoute)
 
 	s := &http.Server{
 		Addr:         ":8081",

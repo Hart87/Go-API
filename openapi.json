@@ -13,7 +13,7 @@
     ],
     "tags": [
         {
-           "name": "User",
+           "name": "V1 User",
            "description": "CRUD Users",
            "externalDocs": {
               "description": "Find out more",
@@ -22,10 +22,10 @@
         }
     ],
     "paths": {
-      "/users": {
+      "/v1/users": {
         "post": {
             "tags": [
-                "User"
+                "V1 User"
              ],
           "summary": "Create A User.",
           "description": "Creates a new user and writes it to the database under the User Collection",
@@ -64,10 +64,10 @@
           }
         }
       },
-      "/users/{id}": {
+      "v1/users/{id}": {
         "get": {
             "tags": [
-                "User"
+                "V1 User"
              ],
           "summary": "Retrieve A User.",
           "description": "Finds a user by their ID number and returns it",
@@ -107,7 +107,7 @@
         },
         "put": {
             "tags": [
-                "User"
+                "V1 User"
              ],
             "summary": "Edit A User.",
             "description": "Finds a user by their ID number.Edits it, and returns it",
@@ -147,7 +147,7 @@
           },
           "delete": {
             "tags": [
-                "User"
+                "V1 User"
              ],
             "summary": "Delete A User.",
             "description": "Finds a user by their ID number and Deletes it from the Databse",
@@ -186,10 +186,10 @@
             }
           }
       },
-      "/users/all": {
+      "/v1/users/all": {
         "get": {
             "tags": [
-                "User"
+                "V1 User"
              ],
           "summary": "Retrieves all Users.",
           "description": "This returns a list of all users from the database (or cache)",

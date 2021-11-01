@@ -77,12 +77,12 @@ func UsersRoute(w http.ResponseWriter, r *http.Request) {
 func getUserById(w http.ResponseWriter, r *http.Request) {
 
 	parts := strings.Split(r.URL.String(), "/")
-	if len(parts) != 3 {
+	if len(parts) != 4 {
 		w.Header().Add("content-type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	part := parts[2]
+	part := parts[3]
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -183,12 +183,12 @@ func editAUserById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	parts := strings.Split(r.URL.String(), "/")
-	if len(parts) != 3 {
+	if len(parts) != 4 {
 		w.Header().Add("content-type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	part := parts[2]
+	part := parts[3]
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
@@ -253,12 +253,12 @@ func deleteAUserById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	parts := strings.Split(r.URL.String(), "/")
-	if len(parts) != 3 {
+	if len(parts) != 4 {
 		w.Header().Add("content-type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	part := parts[2]
+	part := parts[3]
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
