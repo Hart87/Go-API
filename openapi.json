@@ -1,0 +1,234 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Go-API",
+      "description": "API service for use in a microservices environment",
+      "version": "0.1.1"
+    },
+    "servers": [
+      {
+        "url": "http://localhost:8081",
+        "description": "Development server[Staging/Production are different from this]"
+      }
+    ],
+    "tags": [
+        {
+           "name": "User",
+           "description": "CRUD Users",
+           "externalDocs": {
+              "description": "Find out more",
+              "url": "http://foo.bar"
+           }
+        }
+    ],
+    "paths": {
+      "/users": {
+        "post": {
+            "tags": [
+                "User"
+             ],
+          "summary": "Create A User.",
+          "description": "Creates a new user and writes it to the database under the User Collection",
+          "responses": {
+            "200": {
+              "description": "A JSON object of details",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "password": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "membership": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "int"
+                      }
+                      
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/users/{id}": {
+        "get": {
+            "tags": [
+                "User"
+             ],
+          "summary": "Retrieve A User.",
+          "description": "Finds a user by their ID number and returns it",
+          "responses": {
+            "200": {
+              "description": "A JSON object of details",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "password": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "membership": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "int"
+                      }
+                      
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "put": {
+            "tags": [
+                "User"
+             ],
+            "summary": "Edit A User.",
+            "description": "Finds a user by their ID number.Edits it, and returns it",
+            "responses": {
+              "200": {
+                "description": "A JSON object of details",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "password": {
+                          "type": "string"
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "membership": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "int"
+                        }
+                        
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "delete": {
+            "tags": [
+                "User"
+             ],
+            "summary": "Delete A User.",
+            "description": "Finds a user by their ID number and Deletes it from the Databse",
+            "responses": {
+              "200": {
+                "description": "A JSON object of details",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "password": {
+                          "type": "string"
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "membership": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "int"
+                        }
+                        
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+      },
+      "/users/all": {
+        "get": {
+            "tags": [
+                "User"
+             ],
+          "summary": "Retrieves all Users.",
+          "description": "This returns a list of all users from the database (or cache)",
+          "responses": {
+            "200": {
+              "description": "A JSON object of details",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "password": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "membership": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "int"
+                      }
+                      
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  
