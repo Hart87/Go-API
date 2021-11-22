@@ -100,7 +100,10 @@ func getUserById(w http.ResponseWriter, r *http.Request) {
 	rVal, cacheGetErr := rClient.Get(part).Result()
 	if cacheGetErr == nil {
 		log.Print("retrieved : " + rVal)
-		//return JSON & response header
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(rVal))
+		return
 	} else {
 		log.Println("Not Presently Cache'd")
 	}
@@ -268,13 +271,20 @@ func editAUserById(w http.ResponseWriter, r *http.Request) {
 
 	if result.MatchedCount != 0 {
 		log.Println("matched and replaced an existing document")
-		return
 	}
 	if result.UpsertedCount != 0 {
 		log.Printf("inserted a new document with ID %v\n", result.UpsertedID)
 	}
 
 	res, _ := json.Marshal(user)
+
+	//Add to cache
+	log.Println(part)
+	cacheSetError := rClient.Set(part, res, 0).Err()
+	if cacheSetError != nil {
+		log.Println("Not Cached : " + cacheSetError.Error())
+	}
+
 	client.Disconnect(ctx)
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
