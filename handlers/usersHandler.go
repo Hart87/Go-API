@@ -147,6 +147,8 @@ func getUserById(w http.ResponseWriter, r *http.Request) {
 
 func postUser(w http.ResponseWriter, r *http.Request) {
 
+	log.Println("POST USER")
+
 	ct := r.Header.Get("content-type")
 	if ct != "application/json" {
 		w.WriteHeader(http.StatusUnsupportedMediaType)
@@ -195,6 +197,13 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 	log.Println(res)
 
 	jres, _ := json.Marshal(user)
+
+	//Add to cache
+	log.Println(user.ID)
+	cacheSetError := rClient.Set(user.ID, jres, 0).Err()
+	if cacheSetError != nil {
+		log.Println("Not Cached : " + cacheSetError.Error())
+	}
 
 	client.Disconnect(ctx)
 	w.Header().Add("content-type", "application/json")
