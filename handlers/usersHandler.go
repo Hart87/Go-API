@@ -201,8 +201,6 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 
 	jres, _ := json.Marshal(user)
 
-	//Add to cache
-	log.Println(user.ID)
 	cacheSetError := rClient.Set(user.ID, jres, 0).Err()
 	if cacheSetError != nil {
 		log.Println("Not Cached : " + cacheSetError.Error())
@@ -278,8 +276,6 @@ func editAUserById(w http.ResponseWriter, r *http.Request) {
 
 	res, _ := json.Marshal(user)
 
-	//Add to cache
-	log.Println(part)
 	cacheSetError := rClient.Set(part, res, 0).Err()
 	if cacheSetError != nil {
 		log.Println("Not Cached : " + cacheSetError.Error())
@@ -292,6 +288,9 @@ func editAUserById(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteAUserById(w http.ResponseWriter, r *http.Request) {
+
+	/*When adding authentication, add logic here that determines
+	if the requesting user owns the item or is admin */
 
 	ct := r.Header.Get("content-type")
 	if ct != "application/json" {
@@ -316,6 +315,11 @@ func deleteAUserById(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
+	}
+
+	cacheDelError := rClient.Del(part).Err()
+	if cacheDelError != nil {
+		log.Println("Not Cached : " + cacheDelError.Error())
 	}
 
 	opts := options.Delete()
