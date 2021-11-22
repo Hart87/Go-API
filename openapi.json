@@ -219,7 +219,6 @@
                       "createdAt": {
                         "type": "int"
                       }
-                      
                     }
                   }
                 }

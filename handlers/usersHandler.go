@@ -14,9 +14,21 @@ import (
 	"github.com/hart87/go-api/db"
 	"github.com/hart87/go-api/models"
 
+	"github.com/go-redis/redis"
+	cache "github.com/hart87/go-api/redis"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+//Redis
+var rClient = redis.NewClient(&redis.Options{
+	Addr:     cache.CONNECTION_URI + cache.CONNECTION_PORT,
+	Password: cache.PASSWORD,
+	DB:       cache.DB,
+})
+
+//Mongo
 
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 
@@ -84,6 +96,15 @@ func getUserById(w http.ResponseWriter, r *http.Request) {
 	}
 	part := parts[3]
 
+	//check if Redis has the user before hitting Mongo
+	rVal, cacheGetErr := rClient.Get(part).Result()
+	if cacheGetErr == nil {
+		log.Print("retrieved : " + rVal)
+		//return JSON & response header
+	} else {
+		log.Println("Not Presently Cache'd")
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -104,6 +125,13 @@ func getUserById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response, err := json.Marshal(result)
+
+	//Add to cache
+	cacheSetError := rClient.Set(part, response, 0).Err()
+	if cacheSetError != nil {
+		log.Println("Not Cached : " + cacheSetError.Error())
+	}
+
 	if err != nil {
 		w.Header().Add("content-type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
