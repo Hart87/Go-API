@@ -11,6 +11,9 @@ import (
 func main() {
 	log.Println("Go-API Running")
 
+	//JWT
+	http.HandleFunc("/v1/login", handlers.Login)
+
 	//GET
 	http.HandleFunc("/v1/users/all", handlers.GetAllUsers)
 	//GET, PUT, POST, DELETE a User by Id
