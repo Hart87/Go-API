@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -92,4 +93,34 @@ func GenerateToken() string {
 	}
 
 	return tokenString
+}
+
+func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		if r.Header["Token"] != nil {
+
+			token, err := jwt.Parse(r.Header["Token"][0], func(token *jwt.Token) (interface{}, error) {
+				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+					w.WriteHeader(http.StatusForbidden)
+					return nil, fmt.Errorf("something went wrong") //work on this line
+				}
+				return mySigningKey, nil
+			})
+
+			if err != nil {
+				log.Print(w, err.Error())
+			}
+
+			if token.Valid {
+				endpoint(w, r)
+			}
+		} else {
+
+			log.Print(w, "Not Authorized")
+			w.WriteHeader(http.StatusForbidden)
+		}
+
+	})
+
 }
