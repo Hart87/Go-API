@@ -86,19 +86,19 @@ func login(w http.ResponseWriter, r *http.Request) {
 	client.Disconnect(ctx)
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader((http.StatusOK))
-	w.Write([]byte(GenerateToken(result.Email, result.Membership)))
+	w.Write([]byte(GenerateToken(result.ID, result.Membership)))
 	return
 }
 
-func GenerateToken(email, role string) string {
+func GenerateToken(id, role string) string {
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
 
 	claims["authorized"] = true
-	claims["email"] = email
+	claims["id"] = id
 	claims["role"] = role
-	claims["exp"] = time.Now().Add(time.Minute * 5).Unix()
+	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
 
 	tokenString, err := token.SignedString(mySigningKey)
 
@@ -124,6 +124,7 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handle
 
 			if err != nil {
 				log.Print(w, err.Error())
+				w.WriteHeader(http.StatusBadRequest)
 			}
 
 			if token.Valid {

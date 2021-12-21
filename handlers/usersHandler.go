@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -16,6 +17,8 @@ import (
 
 	"github.com/go-redis/redis"
 	cache "github.com/hart87/go-api/redis"
+
+	"github.com/golang-jwt/jwt"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -298,8 +301,20 @@ func editAUserById(w http.ResponseWriter, r *http.Request) {
 
 func deleteAUserById(w http.ResponseWriter, r *http.Request) {
 
-	/*When adding authentication, add logic here that determines
-	if the requesting user owns the item or is admin */
+	type MyCustomClaims struct {
+		ID   string `json:"id"`
+		Role string `json:"role"`
+		jwt.StandardClaims
+	}
+
+	//Obtain & parse token
+	token, err := jwt.ParseWithClaims(r.Header["Token"][0], &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			w.WriteHeader(http.StatusForbidden)
+			return nil, fmt.Errorf("something went wrong") //work on this line
+		}
+		return mySigningKey, nil
+	})
 
 	ct := r.Header.Get("content-type")
 	if ct != "application/json" {
@@ -314,6 +329,24 @@ func deleteAUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	part := parts[3]
+
+	//Obtain claims from token
+	claims, ok := token.Claims.(*MyCustomClaims)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("claims not properly parsed from token"))
+	}
+
+	//Match conditions and possibly proceed
+	log.Print(part)        //test purposes
+	log.Print(claims.ID)   //test purposes
+	log.Print(claims.Role) //test purposes
+
+	if claims.Role != "admin" && part != claims.ID {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Permission is not granted to delete this entity"))
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
