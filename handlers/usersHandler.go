@@ -70,14 +70,23 @@ func UsersRoute(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		getUserById(w, r)
 		return
-	case "POST":
-		postUser(w, r)
-		return
 	case "PUT":
 		editAUserById(w, r)
 		return
 	case "DELETE":
 		deleteAUserById(w, r)
+		return
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("method not allowed"))
+		return
+	}
+}
+
+func NewUserRoute(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "POST":
+		postUser(w, r)
 		return
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)

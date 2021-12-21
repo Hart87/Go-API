@@ -11,12 +11,16 @@ import (
 func main() {
 	log.Println("Go-API Running")
 
-	//JWT
-	http.HandleFunc("/v1/login", handlers.Login)
+	//POST. No Auth
+	http.HandleFunc("/v1/login", handlers.LoginRoute)
+
+	//POST. No Auth
+	http.HandleFunc("/v1/users/new", handlers.NewUserRoute)
 
 	//GET
 	http.Handle("/v1/users/all", handlers.IsAuthorized(handlers.GetAllUsers))
-	//GET, PUT, POST, DELETE a User by Id
+
+	//GET, PUT, DELETE a User by Id
 	http.HandleFunc("/v1/users/", handlers.UsersRoute)
 
 	s := &http.Server{

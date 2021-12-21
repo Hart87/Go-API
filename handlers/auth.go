@@ -19,7 +19,19 @@ import (
 
 var mySigningKey = []byte("pizza") //TEMPORARILY HERE
 
-func Login(w http.ResponseWriter, r *http.Request) {
+func LoginRoute(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "POST":
+		login(w, r)
+		return
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("method not allowed"))
+		return
+	}
+}
+
+func login(w http.ResponseWriter, r *http.Request) {
 
 	ct := r.Header.Get("content-type")
 	if ct != "application/json" {
