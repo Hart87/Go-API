@@ -88,7 +88,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader((http.StatusOK))
 	w.Write([]byte(GenerateToken(result.ID, result.Membership)))
-	return
+
 }
 
 func GenerateToken(id, role string) string {
@@ -133,8 +133,8 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handle
 			}
 		} else {
 
-			log.Print(w, "Not Authorized")
 			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte("not authorized"))
 		}
 
 	})

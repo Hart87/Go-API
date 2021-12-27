@@ -21,7 +21,7 @@ func main() {
 	http.Handle("/v1/users/all", handlers.IsAuthorized(handlers.GetAllUsers))
 
 	//GET, PUT, DELETE a User by Id
-	http.HandleFunc("/v1/users/", handlers.UsersRoute)
+	http.Handle("/v1/users/", handlers.IsAuthorized(handlers.UsersRoute))
 
 	s := &http.Server{
 		Addr:         ":8081",

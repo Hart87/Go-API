@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	//"github.com/hart87/go-api/auth"
 	"github.com/hart87/go-api/db"
 	"github.com/hart87/go-api/models"
 
@@ -42,7 +41,10 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 
 	collection, client, err := db.GetMongoDbCollection(db.DATABASE, db.COLLECTION_USERS)
 	if err != nil {
-		log.Panic(err)
+		log.Print(err)
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader((http.StatusBadRequest))
+		w.Write([]byte("error retrieving users."))
 	}
 
 	filter := bson.D{}
@@ -166,8 +168,6 @@ func getUserById(w http.ResponseWriter, r *http.Request) {
 }
 
 func postUser(w http.ResponseWriter, r *http.Request) {
-
-	log.Println("POST USER")
 
 	ct := r.Header.Get("content-type")
 	if ct != "application/json" {
