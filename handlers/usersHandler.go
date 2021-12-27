@@ -125,7 +125,10 @@ func getUserById(w http.ResponseWriter, r *http.Request) {
 
 	collection, client, err := db.GetMongoDbCollection(db.DATABASE, db.COLLECTION_USERS)
 	if err != nil {
-		log.Panic(err)
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader((http.StatusBadRequest))
+		w.Write([]byte("nil pointer address"))
+
 	}
 
 	result := models.User{}
@@ -134,8 +137,8 @@ func getUserById(w http.ResponseWriter, r *http.Request) {
 	val := collection.FindOne(ctx, filter).Decode(&result)
 	if val != nil {
 		w.Header().Add("content-type", "application/json")
-		w.WriteHeader((http.StatusInternalServerError))
-		w.Write([]byte(err.Error()))
+		w.WriteHeader((http.StatusBadRequest))
+		w.Write([]byte("user not found"))
 		return
 	}
 
@@ -338,13 +341,9 @@ func deleteAUserById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Match conditions and possibly proceed
-	log.Print(part)        //test purposes
-	log.Print(claims.ID)   //test purposes
-	log.Print(claims.Role) //test purposes
-
 	if claims.Role != "admin" && part != claims.ID {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Permission is not granted to delete this entity"))
+		w.Write([]byte("permission is not granted to delete this entity"))
 		return
 	}
 
