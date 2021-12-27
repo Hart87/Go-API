@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hart87/go-api/auth"
+	//"github.com/hart87/go-api/auth"
 	"github.com/hart87/go-api/db"
 	"github.com/hart87/go-api/models"
 
@@ -19,6 +19,8 @@ import (
 	cache "github.com/hart87/go-api/redis"
 
 	"github.com/golang-jwt/jwt"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -191,7 +193,10 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 
 	user.CreatedAt = 1351700038
 	user.ID = uuid.NewString()
-	user.Password = auth.HashPassword(user.Password)
+	//hash password
+	bytes, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
+	user.Password = string(bytes)
+
 	log.Println(user)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

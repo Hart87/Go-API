@@ -11,10 +11,11 @@ import (
 
 	"github.com/golang-jwt/jwt"
 
-	"github.com/hart87/go-api/auth"
 	"github.com/hart87/go-api/db"
 	"github.com/hart87/go-api/models"
 	"go.mongodb.org/mongo-driver/bson"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 var mySigningKey = []byte("pizza") //TEMPORARILY HERE
@@ -76,8 +77,8 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//run a hash check on the passwords
-	isOk := auth.CheckPasswordHash(result.Password, user.Password)
-	if !isOk {
+	isOk := bcrypt.CompareHashAndPassword([]byte(result.Password), []byte(user.Password))
+	if isOk != nil {
 		w.Header().Add("content-type", "application/json")
 		w.WriteHeader((http.StatusUnauthorized))
 		return
