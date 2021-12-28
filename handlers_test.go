@@ -4,12 +4,13 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/hart87/go-api/handlers"
 )
 
-//Integration tests involving handler and database
+//Integration tests involving handlers and database
 
 func TestGetAllForResponseAndBody(t *testing.T) {
 
@@ -31,12 +32,36 @@ func TestGetAllForResponseAndBody(t *testing.T) {
 
 }
 
+func TestLoginForJWT(t *testing.T) {
+
+	//r := strings.NewReader(`{"email":"hart87@gmail.com","password":"password"}`)
+
+	req := httptest.NewRequest(
+		http.MethodPost,
+		"/v1/login",
+		strings.NewReader(`{"email":"hart87@gmail.com","password":"password"}`))
+	req.Header.Set("Content-Type", "application/json")
+
+	rr := httptest.NewRecorder()
+
+	handler := http.HandlerFunc(handlers.LoginRoute)
+	handler.ServeHTTP(rr, req)
+
+	log.Print(rr.Body)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+}
+
 func TestGetByIdForResponseAndBody(t *testing.T) {
 
 	req := httptest.NewRequest(
 		http.MethodGet,
-		"/users/261f0214-1097-4c2b-ae3a-a86b15f25e6b",
+		"/v1/users/261f0214-1097-4c2b-ae3a-a86b15f25e6b",
 		nil)
+
 	rr := httptest.NewRecorder()
 
 	handler := http.HandlerFunc(handlers.UsersRoute)

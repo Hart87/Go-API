@@ -18,7 +18,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var mySigningKey = SUPER_SECRET_PASSWORD
+var mySigningKey = []byte(SUPER_SECRET_PASSWORD) //TEMPORARILY HERE
 
 func LoginRoute(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
