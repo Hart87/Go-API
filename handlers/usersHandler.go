@@ -25,6 +25,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type MyCustomClaims struct {
+	ID   string `json:"id"`
+	Role string `json:"role"`
+	jwt.StandardClaims
+}
+
 //Redis
 var rClient = redis.NewClient(&redis.Options{
 	Addr:     cache.CONNECTION_URI + cache.CONNECTION_PORT,
@@ -234,6 +240,15 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 
 func editAUserById(w http.ResponseWriter, r *http.Request) {
 
+	//Obtain & parse token
+	token, err := jwt.ParseWithClaims(r.Header["Token"][0], &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			w.WriteHeader(http.StatusForbidden)
+			return nil, fmt.Errorf("something went wrong") //work on this line
+		}
+		return mySigningKey, nil
+	})
+
 	ct := r.Header.Get("content-type")
 	if ct != "application/json" {
 		w.WriteHeader(http.StatusUnsupportedMediaType)
@@ -261,6 +276,22 @@ func editAUserById(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		return
+	}
+
+	user.Membership = "standard" //Not allowed to edit role
+
+	//Obtain claims from token
+	claims, ok := token.Claims.(*MyCustomClaims)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("claims not properly parsed from token"))
+	}
+
+	//Match conditions and possibly proceed
+	if claims.Role != "admin" && part != claims.ID {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte("permission is not granted to edit this entity"))
 		return
 	}
 
@@ -296,7 +327,7 @@ func editAUserById(w http.ResponseWriter, r *http.Request) {
 
 	res, _ := json.Marshal(user)
 
-	cacheSetError := rClient.Set(part, res, 0).Err()
+	cacheSetError := rClient.Set(part, res, 100*time.Second).Err()
 	if cacheSetError != nil {
 		log.Println("Not Cached : " + cacheSetError.Error())
 	}
@@ -308,12 +339,6 @@ func editAUserById(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteAUserById(w http.ResponseWriter, r *http.Request) {
-
-	type MyCustomClaims struct {
-		ID   string `json:"id"`
-		Role string `json:"role"`
-		jwt.StandardClaims
-	}
 
 	//Obtain & parse token
 	token, err := jwt.ParseWithClaims(r.Header["Token"][0], &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {

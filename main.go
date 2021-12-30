@@ -29,5 +29,4 @@ func main() {
 		WriteTimeout: 3 * time.Second,
 	}
 	log.Fatal(s.ListenAndServe())
-
 }
