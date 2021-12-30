@@ -155,7 +155,7 @@ func getUserById(w http.ResponseWriter, r *http.Request) {
 	response, err := json.Marshal(result)
 
 	//Add to cache
-	cacheSetError := rClient.Set(part, response, 0).Err()
+	cacheSetError := rClient.Set(part, response, time.Hour*1).Err()
 	if cacheSetError != nil {
 		log.Println("Not Cached : " + cacheSetError.Error())
 	}
@@ -227,7 +227,7 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 
 	jres, _ := json.Marshal(user)
 
-	cacheSetError := rClient.Set(user.ID, jres, 0).Err()
+	cacheSetError := rClient.Set(user.ID, jres, time.Hour*1).Err()
 	if cacheSetError != nil {
 		log.Println("Not Cached : " + cacheSetError.Error())
 	}
@@ -327,7 +327,7 @@ func editAUserById(w http.ResponseWriter, r *http.Request) {
 
 	res, _ := json.Marshal(user)
 
-	cacheSetError := rClient.Set(part, res, 100*time.Second).Err()
+	cacheSetError := rClient.Set(part, res, time.Hour*1).Err()
 	if cacheSetError != nil {
 		log.Println("Not Cached : " + cacheSetError.Error())
 	}
