@@ -1,0 +1,236 @@
+openapi: 3.0.0
+info:
+  title: Go-API
+  description: API service for use in a microservices environment
+  version: 0.1.1
+servers:
+  - url: http://localhost:8081
+    description: Development server[Staging/Production are different from this]
+tags:
+  - name: V1 User
+    description: CRUD Users Monolith/Microservice
+    externalDocs:
+      description: Find out more
+      url: http://foo.bar
+paths:
+  /v1/login:
+    post:
+      tags:
+        - V1 Login
+      summary: Log In as a User.
+      description: >-
+        Once a User is created login in with email and password to receieve a
+        JWT for authentication. Pass this token along with all future requests. Token expires after 30 minutes. Content type must be set to Application/JSON.
+      parameters:
+        - in: query
+          name: User
+          description: The user attributes to create.
+          schema:
+            type: object
+            required:
+              - userName
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+      responses:
+        '200':
+          description: A JSON object of details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Token:
+                    type: string
+                  
+  /v1/user/new:
+    post:
+      tags:
+        - V1 User
+      summary: Create A User.
+      description: >-
+        Creates a new user and writes it to the database and cache under the User
+        Collection. Cache TTL value 1 hour (3600 seconds). Content type must be set to Application/JSON.
+      parameters:
+        - in: query
+          name: User
+          description: The user attributes to create.
+          schema:
+            type: object
+            required:
+              - userName
+            properties:
+              name:
+                type: string
+              email:
+                type: string
+              password:
+                type: string
+              membership:
+                type: string
+      responses:
+        '200':
+          description: A JSON object of details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  password:
+                    type: string
+                  id:
+                    type: string
+                  membership:
+                    type: string
+                  createdAt:
+                    type: number
+  v1/users/{id}:
+    get:
+      tags:
+        - V1 User
+      summary: Retrieve A User.
+      description: Finds a user by their ID number from the database or cache and returns it. Resets TTL value for 1 hour (3600 seconds). Content type must be set to Application/JSON
+      parameters:
+        - in: header
+          name: JWT Authentication
+          schema:
+            type: object
+            properties:
+              Token:
+                type: string
+      responses:
+        '200':
+          description: A JSON object of details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  password:
+                    type: string
+                  id:
+                    type: string
+                  membership:
+                    type: string
+                  createdAt:
+                    type: number
+    put:
+      tags:
+        - V1 User
+      summary: Edit A User. 
+      description: Finds a user by their ID number. Edits it in the database and cache, and returns it. TTL value 1 hour (3600 seconds). You cannot edit a users attributes unless you are an admin or the authorized user. Content type must be set to Application/JSON
+      parameters:
+        - in: header
+          name: JWT Authentication
+          schema:
+            type: object
+            properties:
+              Token:
+                type: string
+        - in: query
+          name: User
+          description: The user attributes to create.
+          schema:
+            type: object
+            required:
+              - userName
+            properties:
+              name:
+                type: string
+              email:
+                type: string
+              password:
+                type: string
+              membership:
+                type: string
+              id:
+                type: string
+              createdAt:
+                type: number
+      responses:
+        '200':
+          description: A JSON object of details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  password:
+                    type: string
+                  id:
+                    type: string
+                  membership:
+                    type: string
+                  createdAt:
+                    type: int
+    delete:
+      tags:
+        - V1 User
+      summary: Delete A User.
+      description: Finds a user by their ID number and Deletes it from the Database and Cache. You cannot delete a user unless you are an admin or are logged in as the user. Content type must be set to Application/JSON
+      parameters:
+        - in: header
+          name: JWT Authentication
+          schema:
+            type: object
+            properties:
+              Token:
+                type: string
+      responses:
+        '200':
+          description: A JSON object of details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+  /v1/users/all:
+    get:
+      tags:
+        - V1 User
+      summary: Retrieves all Users.
+      description: This returns a list of all users from the database. Content type must be set to Application/JSON
+      parameters:
+        - in: header
+          name: JWT Authentication
+          schema:
+            type: object
+            properties:
+              Token:
+                type: string
+      responses:
+        '200':
+          description: A JSON object of details
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    email:
+                      type: string
+                    password:
+                      type: string
+                    id:
+                      type: string
+                    membership:
+                      type: string
+                    createdAt:
+                      type: number

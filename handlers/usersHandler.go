@@ -25,6 +25,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+//JWT
 type MyCustomClaims struct {
 	ID   string `json:"id"`
 	Role string `json:"role"`
