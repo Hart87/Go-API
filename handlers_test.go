@@ -15,6 +15,9 @@ import (
 )
 
 //Integration tests involving handlers and database
+
+var US = handlers.UsersService{}
+
 func TestCreateUser(t *testing.T) {
 
 	req := httptest.NewRequest(
@@ -78,7 +81,7 @@ func TestGetAllForResponseAndBody(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	handler := http.HandlerFunc(handlers.GetAllUsers)
+	handler := http.HandlerFunc(handlers.US.GetAll)
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
@@ -117,14 +120,17 @@ func TestUpdateUser(t *testing.T) {
 		http.MethodPut,
 		"/v1/users/"+os.Getenv("USER_ID"),
 		strings.NewReader(`{"name":"Testy Testinson McTest IV","id":"`+os.Getenv("USER_ID")+`"}`))
+	req.Header.Set("Token", os.Getenv("TOKEN"))
 	req.Header.Set("Content-Type", "application/json")
 
+	log.Print(os.Getenv("TOKEN"))
+	log.Print(os.Getenv("USER_ID"))
 	rr := httptest.NewRecorder()
 
 	handler := http.HandlerFunc(handlers.UsersRoute)
 	handler.ServeHTTP(rr, req)
 
-	//log.Print(rr.Body)
+	log.Print(rr.Body)
 	var user models.User
 	bodyBytes, _ := ioutil.ReadAll(rr.Body)
 	err := json.Unmarshal(bodyBytes, &user)

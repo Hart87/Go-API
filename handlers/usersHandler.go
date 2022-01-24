@@ -39,56 +39,27 @@ var rClient = redis.NewClient(&redis.Options{
 	DB:       cache.DB,
 })
 
-//Mongo
+type UsersService struct {
+	//implements Service Interface
 
-func GetAllUsers(w http.ResponseWriter, r *http.Request) {
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	collection, client, err := db.GetMongoDbCollection(db.DATABASE, db.COLLECTION_USERS)
-	if err != nil {
-		log.Print(err)
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader((http.StatusBadRequest))
-		w.Write([]byte("error retrieving users."))
-	}
-
-	filter := bson.D{}
-	cursor, err := collection.Find(ctx, filter)
-	if err != nil {
-		panic(err)
-	}
-	defer cursor.Close(ctx)
-
-	results := []models.User{}
-	if err = cursor.All(ctx, &results); err != nil {
-		panic(err)
-	}
-
-	mResults, err := json.Marshal(results)
-	if err != nil {
-		w.Header().Add("content-type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-	}
-
-	client.Disconnect(ctx)
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(mResults))
+	//Mutex?
+	//Other Properties?
 }
+
+var US = UsersService{}
+
+//Mongo
 
 func UsersRoute(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		getUserById(w, r)
+		US.FindByID(w, r)
 		return
 	case "PUT":
-		editAUserById(w, r)
+		US.UpdateByID(w, r)
 		return
 	case "DELETE":
-		deleteAUserById(w, r)
+		US.DeleteByID(w, r)
 		return
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -100,7 +71,7 @@ func UsersRoute(w http.ResponseWriter, r *http.Request) {
 func NewUserRoute(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
-		postUser(w, r)
+		US.Create(w, r)
 		return
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -109,7 +80,7 @@ func NewUserRoute(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getUserById(w http.ResponseWriter, r *http.Request) {
+func (us *UsersService) FindByID(w http.ResponseWriter, r *http.Request) {
 
 	parts := strings.Split(r.URL.String(), "/")
 	if len(parts) != 4 {
@@ -174,7 +145,45 @@ func getUserById(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(response))
 }
 
-func postUser(w http.ResponseWriter, r *http.Request) {
+func (us *UsersService) GetAll(w http.ResponseWriter, r *http.Request) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection, client, err := db.GetMongoDbCollection(db.DATABASE, db.COLLECTION_USERS)
+	if err != nil {
+		log.Print(err)
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader((http.StatusBadRequest))
+		w.Write([]byte("error retrieving users."))
+	}
+
+	filter := bson.D{}
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		panic(err)
+	}
+	defer cursor.Close(ctx)
+
+	results := []models.User{}
+	if err = cursor.All(ctx, &results); err != nil {
+		panic(err)
+	}
+
+	mResults, err := json.Marshal(results)
+	if err != nil {
+		w.Header().Add("content-type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+	}
+
+	client.Disconnect(ctx)
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(mResults))
+}
+
+func (us *UsersService) Create(w http.ResponseWriter, r *http.Request) {
 
 	ct := r.Header.Get("content-type")
 	if ct != "application/json" {
@@ -239,7 +248,7 @@ func postUser(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(jres))
 }
 
-func editAUserById(w http.ResponseWriter, r *http.Request) {
+func (us *UsersService) UpdateByID(w http.ResponseWriter, r *http.Request) {
 
 	//Obtain & parse token
 	token, err := jwt.ParseWithClaims(r.Header["Token"][0], &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -339,7 +348,7 @@ func editAUserById(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(res))
 }
 
-func deleteAUserById(w http.ResponseWriter, r *http.Request) {
+func (us *UsersService) DeleteByID(w http.ResponseWriter, r *http.Request) {
 
 	//Obtain & parse token
 	token, err := jwt.ParseWithClaims(r.Header["Token"][0], &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -367,7 +376,7 @@ func deleteAUserById(w http.ResponseWriter, r *http.Request) {
 	//Obtain claims from token
 	claims, ok := token.Claims.(*MyCustomClaims)
 	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("claims not properly parsed from token"))
 	}
 
