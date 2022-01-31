@@ -39,27 +39,18 @@ var rClient = redis.NewClient(&redis.Options{
 	DB:       cache.DB,
 })
 
-type UsersService struct {
-	//implements Service Interface
-
-	//Mutex?
-	//Other Properties?
-}
-
-var US = UsersService{}
-
 //Mongo
 
 func UsersRoute(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		US.FindByID(w, r)
+		findByID(w, r)
 		return
 	case "PUT":
-		US.UpdateByID(w, r)
+		updateByID(w, r)
 		return
 	case "DELETE":
-		US.DeleteByID(w, r)
+		deleteByID(w, r)
 		return
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -71,7 +62,7 @@ func UsersRoute(w http.ResponseWriter, r *http.Request) {
 func NewUserRoute(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
-		US.Create(w, r)
+		create(w, r)
 		return
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -80,7 +71,7 @@ func NewUserRoute(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (us *UsersService) FindByID(w http.ResponseWriter, r *http.Request) {
+func findByID(w http.ResponseWriter, r *http.Request) {
 
 	parts := strings.Split(r.URL.String(), "/")
 	if len(parts) != 4 {
@@ -145,7 +136,7 @@ func (us *UsersService) FindByID(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(response))
 }
 
-func (us *UsersService) GetAll(w http.ResponseWriter, r *http.Request) {
+func GetAll(w http.ResponseWriter, r *http.Request) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -183,7 +174,7 @@ func (us *UsersService) GetAll(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(mResults))
 }
 
-func (us *UsersService) Create(w http.ResponseWriter, r *http.Request) {
+func create(w http.ResponseWriter, r *http.Request) {
 
 	ct := r.Header.Get("content-type")
 	if ct != "application/json" {
@@ -248,7 +239,7 @@ func (us *UsersService) Create(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(jres))
 }
 
-func (us *UsersService) UpdateByID(w http.ResponseWriter, r *http.Request) {
+func updateByID(w http.ResponseWriter, r *http.Request) {
 
 	//Obtain & parse token
 	token, err := jwt.ParseWithClaims(r.Header["Token"][0], &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -348,7 +339,7 @@ func (us *UsersService) UpdateByID(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(res))
 }
 
-func (us *UsersService) DeleteByID(w http.ResponseWriter, r *http.Request) {
+func deleteByID(w http.ResponseWriter, r *http.Request) {
 
 	//Obtain & parse token
 	token, err := jwt.ParseWithClaims(r.Header["Token"][0], &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {

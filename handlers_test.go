@@ -16,8 +16,6 @@ import (
 
 //Integration tests involving handlers and database
 
-var US = handlers.UsersService{}
-
 func TestCreateUser(t *testing.T) {
 
 	req := httptest.NewRequest(
@@ -81,7 +79,7 @@ func TestGetAllForResponseAndBody(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 
-	handler := http.HandlerFunc(handlers.US.GetAll)
+	handler := http.HandlerFunc(handlers.GetAll)
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {

@@ -18,7 +18,7 @@ func main() {
 	http.HandleFunc("/v1/users/new", handlers.NewUserRoute)
 
 	//GET
-	http.Handle("/v1/users/all", handlers.IsAuthorized(handlers.US.GetAll))
+	http.Handle("/v1/users/all", handlers.IsAuthorized(handlers.GetAll))
 
 	//GET, PUT, DELETE a User by Id
 	http.Handle("/v1/users/", handlers.IsAuthorized(handlers.UsersRoute))
